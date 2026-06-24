@@ -1,0 +1,32 @@
+name: KITY keeper
+
+# Calls the permissionless triggerDraw() / settle() on a schedule so draws fire
+# and rounds settle without a server. Scheduled runs only execute on the default
+# branch. Public repos get unlimited Actions minutes.
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # every 10 minutes (GitHub may delay under load)
+  workflow_dispatch: {}        # allow manual runs from the Actions tab
+
+concurrency:
+  group: kity-keeper
+  cancel-in-progress: false    # never interrupt an in-flight tx
+
+jobs:
+  keep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install ethers
+        run: npm install ethers@6 --no-save --no-audit --no-fund
+      - name: Run keeper
+        run: node scripts/keeper.js
+        env:
+          KEEPER_PRIVATE_KEY: ${{ secrets.KEEPER_PRIVATE_KEY }}
+          LOTTERY_ADDRESS: "0x7AB998E1f73229f0Cf016e8811e9a88eFE8Ee0c5"
+          # Optional: set a private RPC secret for reliability; falls back to public Base RPC.
+          BASE_RPC_URL: ${{ secrets.BASE_RPC_URL }}

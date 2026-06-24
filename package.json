@@ -1,0 +1,24 @@
+{
+  "name": "kitti",
+  "version": "0.2.0",
+  "description": "Kitti — on-chain lottery on Base. Every 100 tickets triggers a draw; jackpot rolls to Mega Pool.",
+  "license": "MIT",
+  "scripts": {
+    "build": "hardhat compile",
+    "test": "hardhat test",
+    "coverage": "hardhat coverage",
+    "deploy:baseSepolia": "hardhat run scripts/deploy.js --network baseSepolia",
+    "deploy:base": "hardhat run scripts/deploy.js --network base",
+    "node": "hardhat node",
+    "dev:no-deploy": "npm install && cd web && npm install && npm run dev"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "dotenv": "^16.4.5",
+    "hardhat": "^2.22.17"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.1.0",
+    "@pythnetwork/entropy-sdk-solidity": "^2.1.0"
+  }
+}
