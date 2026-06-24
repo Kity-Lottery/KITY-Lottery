@@ -1,466 +1,395 @@
 "use client";
 
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { ParticleField } from "@/components/ParticleField";
-import { Reveal } from "@/components/Reveal";
-import { MagneticButton } from "@/components/MagneticButton";
-import { AnimatedNumber } from "@/components/AnimatedNumber";
-import { SpotlightCard } from "@/components/SpotlightCard";
-import { Marquee } from "@/components/Marquee";
-import { TierCards } from "@/components/TierCards";
-import { KITYLogo } from "@/components/KITYLogo";
-
-/* ────────────────────────────────────────────────────────────────────────── */
-
-const STATS = [
-  { value: 2,   prefix: "$", label: "per ticket",   sub: "USDC on Base" },
-  { value: 24,  suffix: "h", label: "every draw",   sub: "runs with one ticket" },
-  { value: 40,  suffix: "k", label: "jackpot odds", sub: "a flat 1-in-40,000" },
-  { value: 278, suffix: "",  label: "3rd prize",    sub: "1-in-278 · friendliest odds" },
-];
 
 const STEPS = [
   {
     n: "01",
-    title: "Pick 4 + 1",
-    body: "Choose a digit 0–9 for each of four balls, then one KITY letter — K, I, T or Y. Quick-pick if you feel lucky.",
+    title: "Connect your wallet",
+    body: "Plug in any EVM wallet — MetaMask, Coinbase Wallet, Rainbow. No account. No email. No KYC.",
+    icon: "🔗",
+  },
+  {
+    desc: "The contract, the tests, the frontend — all open source in the public repo. Fork it, audit it, break it. We welcome scrutiny.",
+    title: "Pick your numbers",
+    body: "Choose a digit 0–9 for each of the four balls — repeats allowed, so 7-7-1-4 is fine — plus a KITY letter, K, I, T or Y. Or hit Quick Pick.",
     icon: "🎯",
   },
   {
-    n: "02",
-    title: "Beat the clock",
-    body: "Every round runs a 24-hour timer. When it hits zero the draw fires — even if you're the only ticket in the pot.",
-    icon: "⏱️",
-  },
-  {
     n: "03",
-    title: "Draw fires",
-    body: "Pyth Entropy delivers a verifiable random number and the contract draws the winning numbers on-chain.",
-    icon: "⚡",
+    title: "Add to cart & buy",
+    body: "Stack multiple tickets in your cart — each distinct slip is real added coverage. Pay $2 USDC per ticket; one transaction covers the whole cart.",
+    icon: "🛒",
   },
   {
     n: "04",
-    title: "Get paid",
-    body: "When the round settles, claim your winning ticket and withdraw your USDC — any time, no expiry.",
+    title: "Draw fires every 24 hours",
+    body: "When the round's 24-hour timer ends, the contract requests verifiable randomness from Pyth Entropy. The draw runs even if a single ticket is in.",
+    icon: "⏱️",
+  },
+  {
+    n: "05",
+    title: "Winnings credited on-chain",
+    body: "When a round settles, the Lucky Wallet prize is credited automatically; jackpot and tier winners claim their ticket, then withdraw. No forms, no waiting period.",
     icon: "💸",
   },
 ];
 
-const TIERS = [
-  { name: "Jackpot", pct: "50%", match: "All 4 digits + KITY · 1 in 40k", glow: "from-violet-500/25 to-indigo-500/5", big: true, icon: "🏆" },
-  { name: "2nd Prize", pct: "15%", match: "All 4 digits in position · 1 in 10k", glow: "from-sky-500/20 to-cyan-500/5", icon: "🥈" },
-  { name: "3rd Prize", pct: "10%", match: "Any 3 in position · 1 in 278", glow: "from-emerald-500/20 to-teal-500/5", icon: "🥉" },
-  { name: "Lucky Wallet", pct: "10%", match: "One random ticket — always pays", glow: "from-fuchsia-500/20 to-pink-500/5", icon: "🍀" },
-  { name: "Rollover", pct: "15%", match: "Seeds the next draw — jackpots grow", glow: "from-amber-500/20 to-yellow-500/5", icon: "🔁" },
+const STATS = [
+  { value: "100%", label: "On-chain", sub: "Every draw, every payout" },
+  { value: "Pyth", label: "Randomness", sub: "Verifiable, on-chain" },
+  { value: "6s", label: "Settlement", sub: "Base block time" },
+  { value: "Open", label: "Source", sub: "Audit it yourself" },
 ];
 
-const FAIRNESS = [
+const TECH = [
   {
-    title: "Verifiable seed",
-    body: "The seed comes from Pyth Entropy — the provider commits to it in advance, so nobody, including us, can predict or bias it.",
-    icon: "🛰️",
+    name: "Pyth Entropy",
+    desc: "Verifiable on-chain randomness. The provider commits to a secret before each draw, so no one — including KITY — can predict or manipulate the outcome.",
+    icon: "🎲",
+    color: "from-violet-500/20 to-purple-500/10",
+    border: "border-violet-500/20",
   },
   {
-    title: "Pyth Entropy",
-    body: "Pyth delivers that randomness on-chain to an immutable contract. The whole request → fulfill flow is logged and auditable on BaseScan.",
-    icon: "🔗",
+    name: "Base",
+    desc: "Coinbase's L2 built on the OP Stack. Sub-cent gas fees, 2-second blocks, and the security of Ethereum mainnet underneath.",
+    icon: "🔵",
+    color: "from-blue-500/20 to-cyan-500/10",
+    border: "border-blue-500/20",
   },
   {
-    title: "Re-run it yourself",
-    body: "Every draw emits a DrawReady event with the exact seed. Each winning digit is keccak256-derived from it — replay it with any script and confirm the winners.",
-    icon: "🔍",
+    name: "USDC",
+    desc: "Every ticket costs $2 USDC. Every prize pays out in USDC. No volatile token, no impermanent loss, no conversion step.",
+    icon: "💵",
+    color: "from-emerald-500/20 to-teal-500/10",
+    border: "border-emerald-500/20",
+  },
+  {
+    name: "Open source",
+    desc: "The contract, the tests, the frontend — all open source. Fork it, audit it, break it. We welcome scrutiny.",
+    icon: "🔓",
+    color: "from-amber-500/20 to-yellow-500/10",
+    border: "border-amber-500/20",
   },
 ];
 
-const TRUST = [
-  "PYTH ENTROPY",
-  "VERIFIABLE RANDOMNESS",
-  "BASE L2",
-  "USDC SETTLEMENT",
-  "OPEN SOURCE",
-  "NON-CUSTODIAL",
-  "IMMUTABLE CONTRACT",
-  "PROVABLY FAIR",
-];
-
-/* ────────────────────────────────────────────────────────────────────────── */
-
-export default function LandingPage() {
+function Section({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-60px" });
   return (
-    <div className="space-y-28 pb-10 lg:space-y-40">
-      {/* ═══ HERO ═══════════════════════════════════════════════════════════ */}
-      <section className="full-bleed vignette relative flex min-h-[88vh] items-center justify-center overflow-hidden">
-        {/* particle simulator */}
-        <div className="absolute inset-0">
-          <ParticleField />
-        </div>
-
-        {/* floating number chips */}
-        <FloatingChips />
-
-        {/* hero copy */}
-        <div className="relative z-10 mx-auto max-w-3xl px-6 text-center">
-
-          {/* ── KITY rolling-balls logo ────────────────────────────────── */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className="mb-10 flex justify-center"
-          >
-            <KITYLogo size={82} gap={14} />
-          </motion.div>
-
-          <motion.div
-            initial={{ y: 12, opacity: 0.6 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="mb-7 flex justify-center"
-          >
-            <span className="pill">
-              <span className="pill-dot" />
-              Live on Base · Provably fair
-            </span>
-          </motion.div>
-
-          <motion.h1
-            initial={{ y: 20, opacity: 0.6 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="display display-xl text-white"
-          >
-            The fairest lottery
-            <br />
-            <span className="gradient-text">ever put on-chain.</span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ y: 16, opacity: 0.6 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.7, delay: 0.18, ease: [0.16, 1, 0.3, 1] }}
-            className="mx-auto mt-7 max-w-xl text-pretty text-lg leading-relaxed text-indigo-200/70"
-          >
-            $2 a ticket. Pick 4 digits plus a KITY letter. A draw anyone can verify
-            fires every 24 hours — even with a single ticket in. Jackpots roll forward
-            until someone wins. Prizes credit on-chain instantly — withdraw any time, no expiry.
-          </motion.p>
-
-          <motion.div
-            initial={{ y: 14, opacity: 0.6 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.7, delay: 0.26, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
-          >
-            <MagneticButton href="/play" className="btn-cta" ariaLabel="Enter the draw">
-              Enter the draw
-              <span aria-hidden>→</span>
-            </MagneticButton>
-            <a href="#how" className="btn-outline">
-              See how it works
-            </a>
-          </motion.div>
-        </div>
-
-        {/* scroll cue */}
-        <motion.a
-          href="#trust"
-          aria-label="Scroll down"
-          className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 text-indigo-300/40"
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </motion.a>
-      </section>
-
-      {/* ═══ TRUST STRIP + STATS ════════════════════════════════════════════ */}
-      <section id="trust" className="space-y-12">
-        <Marquee duration={34} className="text-indigo-300/30">
-          {TRUST.map((t) => (
-            <span key={t} className="mx-8 text-xs font-semibold tracking-[0.25em]">
-              {t}
-              <span className="ml-8 text-violet-400/40">✦</span>
-            </span>
-          ))}
-        </Marquee>
-
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-5">
-          {STATS.map((s, i) => (
-            <Reveal key={s.label} delay={i * 0.08}>
-              <SpotlightCard className="px-5 py-7 text-center sm:py-8">
-                <div className="stat-num gradient-text text-4xl sm:text-5xl">
-                  <AnimatedNumber value={s.value} prefix={s.prefix} suffix={s.suffix} />
-                </div>
-                <div className="mt-2 text-sm font-semibold text-indigo-100">{s.label}</div>
-                <div className="text-xs text-indigo-300/40">{s.sub}</div>
-              </SpotlightCard>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* ═══ HOW IT WORKS ═══════════════════════════════════════════════════ */}
-      <section id="how" className="space-y-14">
-        <Reveal className="text-center">
-          <div className="eyebrow text-violet-400/70">How it works</div>
-          <h2 className="display display-lg mt-4 text-white">
-            Four steps. Then <span className="gradient-text">math takes over.</span>
-          </h2>
-        </Reveal>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5">
-          {STEPS.map((step, i) => (
-            <Reveal key={step.n} delay={i * 0.1}>
-              <SpotlightCard className="sheen group h-full p-6">
-                <div className="flex items-center justify-between">
-                  <span className="text-3xl">{step.icon}</span>
-                  <span className="stat-num text-3xl font-black text-white/10 transition-colors group-hover:text-violet-400/30">
-                    {step.n}
-                  </span>
-                </div>
-                <h3 className="mt-5 text-lg font-bold text-indigo-50">{step.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-indigo-300/60">{step.body}</p>
-              </SpotlightCard>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* ═══ PRIZE TIERS — BENTO ════════════════════════════════════════════ */}
-      <section className="space-y-14">
-        <Reveal className="text-center">
-          <div className="eyebrow text-violet-400/70">Where the pool goes</div>
-          <h2 className="display display-lg mt-4 text-white">
-            Six ways to win. <span className="gradient-text">One pool.</span>
-          </h2>
-          <p className="mx-auto mt-5 max-w-xl text-pretty text-indigo-300/60">
-            Every $2 ticket flows into a single round pool, split across the tiers
-            below. No winner in a tier? It rolls straight into the next draw —
-            nothing is ever skimmed.
-          </p>
-        </Reveal>
-
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
-          {TIERS.map((t, i) => (
-            <Reveal
-              key={t.name}
-              delay={i * 0.06}
-              className={t.big ? "col-span-2 lg:row-span-2" : ""}
-            >
-              <SpotlightCard
-                className={`sheen h-full bg-gradient-to-br p-6 ${t.glow} ${
-                  t.big ? "flex flex-col justify-between lg:p-8" : ""
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className={t.big ? "text-4xl" : "text-2xl"}>{t.icon}</span>
-                  <span
-                    className={`stat-num gradient-text ${t.big ? "text-5xl lg:text-7xl" : "text-3xl"}`}
-                  >
-                    {t.pct}
-                  </span>
-                </div>
-                <div className={t.big ? "mt-6" : "mt-4"}>
-                  <div className={`font-bold text-indigo-50 ${t.big ? "text-2xl" : "text-base"}`}>
-                    {t.name}
-                  </div>
-                  <div className="mt-1 text-sm text-indigo-300/55">{t.match}</div>
-                </div>
-              </SpotlightCard>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* ═══ STAKE TIERS ════════════════════════════════════════════════════ */}
-      <section className="space-y-12">
-        <Reveal className="text-center">
-          <div className="eyebrow text-violet-400/70">Choose your stakes</div>
-          <h2 className="display display-lg mt-4 text-white">
-            Three ways to play. <span className="gradient-text">One starts now.</span>
-          </h2>
-          <p className="mx-auto mt-5 max-w-xl text-pretty text-indigo-300/60">
-            Begin at $2 today. Higher tiers — bigger stakes, faster draws, and
-            rolling jackpots up to $1,000,000 — are coming soon.
-          </p>
-        </Reveal>
-        <TierCards />
-      </section>
-
-      {/* ═══ ROLLING JACKPOT ════════════════════════════════════════════════ */}
-      <section className="full-bleed relative overflow-hidden py-24 lg:py-32">
-        <div className="absolute inset-0 -z-10">
-          <ParticleField density={0.55} interactive={false} />
-        </div>
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#050816]/40 via-transparent to-[#050816]/60" />
-
-        <div className="mx-auto grid max-w-5xl grid-cols-1 items-center gap-12 px-6 lg:grid-cols-2 lg:gap-16">
-          <Reveal>
-            <div className="eyebrow text-amber-400/70">Rolls forever</div>
-            <h2 className="display display-lg mt-4 text-white">
-              The jackpot that{" "}
-              <span className="gradient-text-gold">never resets.</span>
-            </h2>
-            <p className="mt-6 text-pretty text-lg leading-relaxed text-indigo-200/70">
-              Nothing is skimmed into a side pool. Every round seeds 10% straight
-              into the next draw — and any prize nobody wins rolls forward too.
-            </p>
-            <p className="mt-4 text-pretty leading-relaxed text-indigo-300/55">
-              So the pot only grows. It compounds round after round until someone
-              finally takes it — then it starts climbing all over again.
-            </p>
-            <div className="mt-8">
-              <MagneticButton href="/play" className="btn-cta" ariaLabel="Play now">
-                Buy a ticket
-                <span aria-hidden>→</span>
-              </MagneticButton>
-            </div>
-          </Reveal>
-
-          <Reveal delay={0.15} className="flex justify-center">
-            <div className="spotlight grain relative flex w-full max-w-sm flex-col gap-5 p-8">
-              <div className="absolute -inset-1 -z-10 rounded-[26px] bg-gradient-to-br from-amber-500/10 to-violet-500/10 blur-xl" />
-              <div className="flex items-center justify-between">
-                <div className="eyebrow text-indigo-300/40">Rolling jackpot</div>
-                <span className="text-xs font-semibold text-emerald-300/80">↑ growing</span>
-              </div>
-              <div className="space-y-2.5">
-                {[
-                  { r: 11, v: "$520", w: "34%", live: false },
-                  { r: 12, v: "$740", w: "52%", live: false },
-                  { r: 13, v: "$980", w: "73%", live: false },
-                  { r: 14, v: "$1,240", w: "100%", live: true },
-                ].map((row) => (
-                  <div key={row.r} className="flex items-center gap-3">
-                    <span className="w-16 shrink-0 text-[10px] text-indigo-300/40">Round {row.r}</span>
-                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/5">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        whileInView={{ width: row.w }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-                        className="h-full rounded-full"
-                        style={{
-                          background: row.live
-                            ? "linear-gradient(90deg,#f59e0b,#fde68a)"
-                            : "linear-gradient(90deg,#7c5cff,#00d4ff)",
-                          boxShadow: row.live ? "0 0 10px rgba(245,158,11,0.6)" : "none",
-                        }}
-                      />
-                    </div>
-                    <span
-                      className={`w-16 shrink-0 text-right text-sm font-black tabular-nums ${
-                        row.live ? "text-amber-200" : "text-indigo-100"
-                      }`}
-                    >
-                      {row.v}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <div className="hairline w-full" />
-              <div className="text-center text-xs text-indigo-300/45">
-                Illustrative — every round with no winner starts the next one bigger.
-              </div>
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* ═══ FAIRNESS ═══════════════════════════════════════════════════════ */}
-      <section className="space-y-14">
-        <Reveal className="text-center">
-          <div className="eyebrow text-cyan-400/70">Don&apos;t trust. Verify.</div>
-          <h2 className="display display-lg mt-4 text-white">
-            Randomness you can <span className="gradient-text">audit yourself.</span>
-          </h2>
-        </Reveal>
-
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-5">
-          {FAIRNESS.map((f, i) => (
-            <Reveal key={f.title} delay={i * 0.1}>
-              <SpotlightCard className="h-full p-7">
-                <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white/5 text-2xl">
-                  {f.icon}
-                </div>
-                <h3 className="mt-5 text-lg font-bold text-indigo-50">{f.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-indigo-300/60">{f.body}</p>
-              </SpotlightCard>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* ═══ FINAL CTA ══════════════════════════════════════════════════════ */}
-      <section className="full-bleed vignette relative flex min-h-[60vh] items-center justify-center overflow-hidden">
-        <div className="absolute inset-0">
-          <ParticleField density={0.7} />
-        </div>
-        <Reveal className="relative z-10 px-6 text-center">
-          <h2 className="display display-lg text-white">
-            Your numbers are <span className="gradient-text">waiting.</span>
-          </h2>
-          <p className="mx-auto mt-5 max-w-md text-pretty text-indigo-200/70">
-            Connect a wallet, pick four digits and a KITY letter, and join the round.
-            The next draw fires every 24 hours — even with one ticket in.
-          </p>
-          <div className="mt-9 flex justify-center">
-            <MagneticButton href="/play" className="btn-cta" ariaLabel="Enter the draw">
-              Enter the draw
-              <span aria-hidden>→</span>
-            </MagneticButton>
-          </div>
-          <p className="mx-auto mt-8 max-w-md text-xs leading-relaxed text-indigo-300/30">
-            Play responsibly and check your local laws before participating. KITY is
-            a smart contract on a public blockchain — not financial advice.
-          </p>
-        </Reveal>
-      </section>
-    </div>
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 24 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.5, ease: [0.25, 1, 0.5, 1] }}
+      className={className}
+    >
+      {children}
+    </motion.div>
   );
 }
 
-/* ── Decorative floating number chips in the hero ─────────────────────────── */
-function FloatingChips() {
-  const chips = [
-    { label: "7",   x: "10%", y: "28%", dur: 7,   rot: "-8deg",  c: "violet" },
-    { label: "3",   x: "84%", y: "20%", dur: 8.5,  rot: "6deg",   c: "violet" },
-    { label: "0",   x: "16%", y: "68%", dur: 6.5,  rot: "5deg",   c: "violet" },
-    { label: "4",   x: "88%", y: "65%", dur: 9,    rot: "-6deg",  c: "violet" },
-    { label: "9",   x: "6%",  y: "50%", dur: 7.8,  rot: "10deg",  c: "violet" },
-  ] as const;
-
-  const palette: Record<string, string> = {
-    violet: "from-violet-500/30 to-indigo-600/10 text-violet-200 border-violet-400/30",
-    cyan: "from-cyan-500/25 to-sky-600/10 text-cyan-200 border-cyan-400/30",
-    amber: "from-amber-500/25 to-yellow-600/10 text-amber-200 border-amber-400/30",
-  };
-
+export default function AboutPage() {
   return (
-    <div className="pointer-events-none absolute inset-0 hidden sm:block" aria-hidden="true">
-      {chips.map((chip, i) => (
-        <div
-          key={i}
-          className="float-slow absolute"
-          style={{
-            left: chip.x,
-            top: chip.y,
-            ["--float-dur" as string]: `${chip.dur}s`,
-            ["--rot" as string]: chip.rot,
-            animationDelay: `${i * 0.4}s`,
-          }}
-        >
-          <div
-            className={`grid h-14 w-14 place-items-center rounded-2xl border bg-gradient-to-br backdrop-blur-md ${palette[chip.c]}`}
-            style={{ boxShadow: "0 8px 30px rgba(0,0,0,0.4)" }}
+    <div className="space-y-16 pb-8 lg:max-w-5xl lg:mx-auto">
+
+      {/* Hero */}
+      <Section className="pt-4 text-center space-y-6">
+        <div className="flex justify-center">
+          <span className="pill">
+            <span className="pill-dot" />
+            Built on Base · Powered by Pyth Entropy
+          </span>
+        </div>
+        <h1 className="display display-lg text-white">
+          The lottery where fairness is{" "}
+          <span className="gradient-text">on-chain proof.</span>
+        </h1>
+        <p className="mx-auto max-w-md text-pretty text-base leading-relaxed text-indigo-300/70">
+          Traditional lotteries hide the odds. KITY puts every draw on a public blockchain so anyone
+          — including you — can verify the result is legit.
+        </p>
+        <div className="flex justify-center pt-1">
+          <Link href="/play" className="btn-cta">
+            Play the next draw
+            <span aria-hidden>→</span>
+          </Link>
+        </div>
+      </Section>
+
+      {/* Stats bar */}
+      <Section>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:gap-4">
+          {STATS.map((s, i) => (
+            <motion.div
+              key={s.label}
+              initial={{ opacity: 0, scale: 0.88 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: i * 0.08 }}
+              className="card-glass text-center py-4 px-2 space-y-0.5"
+            >
+              <div className="gradient-text text-2xl font-black">{s.value}</div>
+              <div className="text-xs font-bold text-indigo-100">{s.label}</div>
+              <div className="text-[10px] text-indigo-300/40">{s.sub}</div>
+            </motion.div>
+          ))}
+        </div>
+      </Section>
+
+      {/* Problem / Solution */}
+      <Section className="card-glass space-y-4 lg:max-w-3xl">
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-indigo-300/50">The Problem</h2>
+        <p className="text-indigo-100 text-sm leading-relaxed">
+          Every traditional lottery — national, state, or online — asks you to{" "}
+          <span className="text-white font-semibold">trust them</span>. Trust that the draw wasn't rigged.
+          Trust that the odds are what they publish. Trust that your winnings will actually arrive.
+        </p>
+        <p className="text-indigo-300/60 text-sm leading-relaxed">
+          That's a lot of trust to place in an organization that profits when you lose.
+        </p>
+        <div className="border-t border-white/5 pt-4">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-indigo-300/50 mb-3">The Fix</h2>
+          <p className="text-indigo-100 text-sm leading-relaxed">
+            KITY replaces trust with cryptographic proof. The random number comes from{" "}
+            <span className="text-violet-300 font-semibold">Pyth Entropy</span> — verifiable on-chain randomness
+            run by MIT, Cloudflare, Protocol Labs, and others. The draw is settled by a smart contract
+            that <em>cannot</em> be modified after deployment. Winners receive USDC instantly.
+            And the odds aren't hidden — a flat <span className="text-violet-300 font-semibold">1 in 40,000</span>{" "}
+            at the jackpot, printed right on the ticket. Everything is auditable on-chain, forever.
+          </p>
+        </div>
+      </Section>
+
+      {/* How it works */}
+      <Section className="space-y-5 lg:max-w-3xl">
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-indigo-300/50">How It Works</h2>
+        <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
+          {STEPS.map((step, i) => (
+            <motion.div
+              key={step.n}
+              initial={{ opacity: 0, x: -16 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: i * 0.07 }}
+              className="card-glass sheen flex gap-4 items-start"
+            >
+              <div className="shrink-0 text-2xl">{step.icon}</div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black text-indigo-300/30 tracking-widest">{step.n}</span>
+                  <span className="text-sm font-bold text-indigo-100">{step.title}</span>
+                </div>
+                <p className="text-xs text-indigo-300/60 leading-relaxed">{step.body}</p>
+              </div>
+        <div className="flex justify-center pt-1">
+          <a
+            href="https://github.com/Kity-Lottery/KITY-Lottery"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="text-xs font-semibold text-violet-300 underline underline-offset-4 hover:text-violet-200 transition-colors"
           >
-            <span className="text-xl font-black">{chip.label}</span>
+            Inspect the public repo on GitHub
+          </a>
+        </div>
+            </motion.div>
+          ))}
+        </div>
+      </Section>
+
+      {/* Prize structure infographic */}
+      <Section className="space-y-5">
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-indigo-300/50">Prize Split — Every Round</h2>
+        <div className="card-glass space-y-3">
+          {[
+            { label: "Jackpot", note: "All 4 in position + KITY letter", pct: 50, color: "#7c5cff" },
+            { label: "2nd Prize", note: "All 4 in position", pct: 15, color: "#00d4ff" },
+            { label: "3rd Prize", note: "Any 3 in position", pct: 10, color: "#10b981" },
+            { label: "Lucky Wallet", note: "Random winner — always pays", pct: 10, color: "#f59e0b" },
+            { label: "Rollover", note: "Seeds the next draw — jackpots grow", pct: 10, color: "#f43f5e" },
+          ].map((t, i) => (
+            <motion.div
+              key={t.label}
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.06 }}
+            >
+              <div className="flex justify-between text-xs mb-1">
+                <span className="font-semibold text-indigo-100">{t.label}
+                  <span className="ml-1.5 text-indigo-300/40 font-normal hidden sm:inline">— {t.note}</span>
+                </span>
+                <span className="font-black text-white">{t.pct}%</span>
+              </div>
+              <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+                <motion.div
+                  className="h-full rounded-full"
+                  style={{ background: t.color, boxShadow: `0 0 8px ${t.color}60` }}
+                  initial={{ width: 0 }}
+                  whileInView={{ width: `${t.pct * 2}%` }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.9, delay: i * 0.08, ease: [0.25, 1, 0.5, 1] }}
+                />
+              </div>
+            </motion.div>
+          ))}
+          <p className="text-[10px] text-indigo-300/30 pt-2 border-t border-white/5">
+            No winner in a tier? It rolls into the next round. Winnings are credited on-chain — claim any time with one click.
+          </p>
+        </div>
+      </Section>
+
+      {/* Growing pool story */}
+      <Section className="space-y-5">
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-indigo-300/50">The Pool That Never Sleeps</h2>
+        <div className="card-glass space-y-5">
+          <p className="text-sm text-indigo-100 leading-relaxed">
+            When no ticket matches the winning numbers for a prize tier,{" "}
+            <span className="text-violet-300 font-semibold">that money doesn't vanish</span>. The jackpot rolls
+            straight into the next round — a bigger prize for the next round's players. On top of that, 10% of
+            every round always rolls into the next draw, so the jackpot keeps compounding with no side pool.
+          </p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {[
+              {
+                icon: "🎯",
+                title: "Timer ends. No jackpot winner.",
+                body: "The 50% jackpot allocation rolls into the next round's jackpot instead of going back to the protocol.",
+              },
+              {
+                icon: "📈",
+                title: "The pot compounds.",
+                body: "On top of the rollover, every round always sends 10% into the next draw. It builds quietly, round after round, with no side pool.",
+              },
+              {
+                icon: "💥",
+                title: "It only resets when someone wins.",
+                body: "The jackpot keeps climbing draw after draw until a ticket finally matches. Then it pays out — credited on-chain instantly, withdrawable any time — and starts growing all over again.",
+              },
+            ].map((s, i) => (
+              <motion.div
+                key={s.title}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.09 }}
+                className="rounded-xl border border-white/5 bg-white/3 p-4 space-y-2"
+              >
+                <div className="text-xl">{s.icon}</div>
+                <div className="text-xs font-bold text-indigo-100 leading-snug">{s.title}</div>
+                <p className="text-xs text-indigo-300/55 leading-relaxed">{s.body}</p>
+              </motion.div>
+            ))}
+          </div>
+          <div className="rounded-xl border border-violet-500/20 bg-violet-500/5 p-4">
+            <p className="text-xs text-violet-300/80 leading-relaxed">
+              <span className="font-bold text-violet-200">The result:</span> a round with zero top-prize winners is not a quiet round — it's a round that silently makes the next big payout even bigger. The pool is always building, always visible on the Play page.
+            </p>
           </div>
         </div>
-      ))}
+      </Section>
+
+      {/* Split prizes */}
+      <Section className="space-y-5">
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-indigo-300/50">What If Two People Pick the Same Numbers?</h2>
+        <div className="card-glass space-y-4">
+          <p className="text-sm text-indigo-100 leading-relaxed">
+            It can happen. When it does, the prize for that tier is{" "}
+            <span className="text-violet-300 font-semibold">split equally among all winners</span>. No one is penalized
+            for thinking alike — but the payout per person scales down with each additional winner.
+          </p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {[
+              {
+                scenario: "1 winner matches the jackpot",
+                result: "100% of the jackpot tier — the whole thing",
+                color: "text-emerald-300",
+                bg: "bg-emerald-500/5 border-emerald-500/20",
+              },
+              {
+                scenario: "2 winners match the jackpot",
+                result: "50% of the tier each, instant",
+                color: "text-sky-300",
+                bg: "bg-sky-500/5 border-sky-500/20",
+              },
+              {
+                scenario: "3 winners match the jackpot",
+                result: "33.3% of the tier each, instant",
+                color: "text-amber-300",
+                bg: "bg-amber-500/5 border-amber-500/20",
+              },
+              {
+                scenario: "No winners in a tier",
+                result: "Full tier amount rolls into the next round",
+                color: "text-violet-300",
+                bg: "bg-violet-500/5 border-violet-500/20",
+              },
+            ].map((r, i) => (
+              <motion.div
+                key={r.scenario}
+                initial={{ opacity: 0, x: -8 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.35, delay: i * 0.07 }}
+                className={`rounded-xl border p-4 space-y-1.5 ${r.bg}`}
+              >
+                <div className="text-xs text-indigo-300/50 font-medium">{r.scenario}</div>
+                <div className={`text-sm font-bold ${r.color}`}>{r.result}</div>
+              </motion.div>
+            ))}
+          </div>
+          <p className="text-xs text-indigo-300/40 leading-relaxed border-t border-white/5 pt-4">
+            The smart contract handles this automatically. Winners are identified and the prize is divided in the same settlement transaction, then credited on-chain — claim any time with one click, no manual distribution.
+          </p>
+        </div>
+      </Section>
+
+      {/* Tech stack */}
+      <Section className="space-y-5">
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-indigo-300/50">Under The Hood</h2>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {TECH.map((t, i) => (
+            <motion.div
+              key={t.name}
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: i * 0.08 }}
+              className={`sheen rounded-2xl border p-4 bg-gradient-to-br ${t.color} ${t.border} space-y-2`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-xl">{t.icon}</span>
+                <span className="text-sm font-bold text-indigo-100">{t.name}</span>
+              </div>
+              <p className="text-xs text-indigo-300/60 leading-relaxed">{t.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+      </Section>
+
+      {/* CTA footer */}
+      <Section className="card-glass text-center space-y-3 py-8">
+        <div className="text-2xl">🏆</div>
+        <h3 className="text-lg font-black text-white">Ready to play?</h3>
+        <p className="text-sm text-indigo-300/60">
+          The next draw fires every 24 hours — even with a single ticket in. Every entry is $2 USDC.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+          <Link href="/play" className="btn-cta">
+            Enter the draw
+            <span aria-hidden>→</span>
+          </Link>
+          <Link
+            href="/faq"
+            className="px-6 py-3 rounded-2xl text-sm font-semibold border border-white/10 text-indigo-300 hover:border-white/20 transition-colors"
+          >
+            Read the FAQ
+          </Link>
+        </div>
+      </Section>
+
     </div>
   );
 }
