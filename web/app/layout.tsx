@@ -70,7 +70,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <main className="flex-1 pb-16 pt-6">{children}</main>
 
             <footer className="border-t border-white/5 py-8 text-center text-xs text-indigo-300/30 space-y-1 lg:mx-auto lg:max-w-2xl">
-              <div>Powered by Pyth Entropy · Built on Base · Open source</div>
+              <div className="space-y-1">
+                <div>Powered by Pyth Entropy · Built on Base · Open source</div>
+                <a
+                  href="https://github.com/Kity-Lottery/KITY-Lottery"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="inline-flex items-center gap-1 text-indigo-300/50 transition-colors hover:text-indigo-200"
+                >
+                  View the source repo for verification and contract details
+                  <span aria-hidden>↗</span>
+                </a>
+              </div>
               <div className="text-indigo-300/20">
                 A verifiable on-chain draw fires every 24 hours — even with one ticket in
               </div>
