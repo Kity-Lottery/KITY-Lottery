@@ -31,16 +31,7 @@ const SECTIONS: { title: string; icon: string; items: FaqItem[] }[] = [
       },
       {
         q: "What does a ticket cost?",
-                You can review the code, tests, and frontend in the public repo{" "}
-                <a
-                  href="https://github.com/Kity-Lottery/KITY-Lottery"
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="text-violet-400 underline underline-offset-2"
-                >
-                  on GitHub
-                </a>
-                .
+        a: "$2 USDC per ticket on the live Starter tier. Higher tiers — $20 (Pro) and $200 (Whale), with rolling jackpots up to $100k and $1M — are coming soon. You can buy multiple tickets per round; gas on Base is typically under $0.01.",
       },
       {
         q: "Can I put the same number on more than one ball?",
