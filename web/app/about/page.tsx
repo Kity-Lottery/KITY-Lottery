@@ -12,7 +12,7 @@ const STEPS = [
     icon: "🔗",
   },
   {
-    n: "02",
+    desc: "The contract, the tests, the frontend — all open source in the public repo. Fork it, audit it, break it. We welcome scrutiny.",
     title: "Pick your numbers",
     body: "Choose a digit 0–9 for each of the four balls — repeats allowed, so 7-7-1-4 is fine — plus a KITY letter, K, I, T or Y. Or hit Quick Pick.",
     icon: "🎯",
@@ -184,6 +184,16 @@ export default function AboutPage() {
                 </div>
                 <p className="text-xs text-indigo-300/60 leading-relaxed">{step.body}</p>
               </div>
+        <div className="flex justify-center pt-1">
+          <a
+            href="https://github.com/Kity-Lottery/KITY-Lottery"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="text-xs font-semibold text-violet-300 underline underline-offset-4 hover:text-violet-200 transition-colors"
+          >
+            Inspect the public repo on GitHub
+          </a>
+        </div>
             </motion.div>
           ))}
         </div>
