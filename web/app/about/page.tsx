@@ -26,28 +26,28 @@ const STEPS = [
   {
     n: "04",
     title: "Draw fires every 24 hours",
-    body: "When the round's 24-hour timer ends, Gelato VRF requests verifiable randomness from Drand — a public beacon run by the League of Entropy. The draw runs even if a single ticket is in.",
+    body: "When the round's 24-hour timer ends, the contract requests verifiable randomness from Pyth Entropy. The draw runs even if a single ticket is in.",
     icon: "⏱️",
   },
   {
     n: "05",
     title: "Winnings credited on-chain",
-    body: "The contract credits winners the instant a round settles. Claim any time with one click — no forms, no waiting period.",
+    body: "When a round settles, the Lucky Wallet prize is credited automatically; jackpot and tier winners claim their ticket, then withdraw. No forms, no waiting period.",
     icon: "💸",
   },
 ];
 
 const STATS = [
   { value: "100%", label: "On-chain", sub: "Every draw, every payout" },
-  { value: "$0", label: "VRF Cost", sub: "Gelato VRF is free" },
+  { value: "Pyth", label: "Randomness", sub: "Verifiable, on-chain" },
   { value: "6s", label: "Settlement", sub: "Base block time" },
   { value: "Open", label: "Source", sub: "Audit it yourself" },
 ];
 
 const TECH = [
   {
-    name: "Gelato VRF",
-    desc: "Free verifiable randomness backed by Drand — the League of Entropy's public randomness beacon. No one, including KITY, can predict or manipulate the outcome.",
+    name: "Pyth Entropy",
+    desc: "Verifiable on-chain randomness. The provider commits to a secret before each draw, so no one — including KITY — can predict or manipulate the outcome.",
     icon: "🎲",
     color: "from-violet-500/20 to-purple-500/10",
     border: "border-violet-500/20",
@@ -100,7 +100,7 @@ export default function AboutPage() {
         <div className="flex justify-center">
           <span className="pill">
             <span className="pill-dot" />
-            Built on Base · Powered by Gelato VRF
+            Built on Base · Powered by Pyth Entropy
           </span>
         </div>
         <h1 className="display display-lg text-white">
@@ -154,7 +154,7 @@ export default function AboutPage() {
           <h2 className="text-xs font-semibold uppercase tracking-widest text-indigo-300/50 mb-3">The Fix</h2>
           <p className="text-indigo-100 text-sm leading-relaxed">
             KITY replaces trust with cryptographic proof. The random number comes from{" "}
-            <span className="text-violet-300 font-semibold">Drand</span> — a public randomness beacon
+            <span className="text-violet-300 font-semibold">Pyth Entropy</span> — verifiable on-chain randomness
             run by MIT, Cloudflare, Protocol Labs, and others. The draw is settled by a smart contract
             that <em>cannot</em> be modified after deployment. Winners receive USDC instantly.
             And the odds aren't hidden — a flat <span className="text-violet-300 font-semibold">1 in 40,000</span>{" "}

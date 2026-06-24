@@ -35,14 +35,14 @@ const STEPS = [
   },
   {
     n: "03",
-    title: "VRF fires",
-    body: "Gelato pulls a Drand random beacon and the contract draws the winning numbers on-chain.",
+    title: "Draw fires",
+    body: "Pyth Entropy delivers a verifiable random number and the contract draws the winning numbers on-chain.",
     icon: "⚡",
   },
   {
     n: "04",
     title: "Get paid",
-    body: "USDC is credited on-chain the moment the round settles — claim it any time with one click.",
+    body: "When the round settles, claim your winning ticket and withdraw your USDC — any time, no expiry.",
     icon: "💸",
   },
 ];
@@ -57,25 +57,25 @@ const TIERS = [
 
 const FAIRNESS = [
   {
-    title: "Drand beacon",
-    body: "The seed comes from Drand — a public randomness beacon run by a league of independent orgs. Nobody, including us, can predict or bias it.",
+    title: "Verifiable seed",
+    body: "The seed comes from Pyth Entropy — the provider commits to it in advance, so nobody, including us, can predict or bias it.",
     icon: "🛰️",
   },
   {
-    title: "Gelato VRF",
-    body: "Gelato delivers that randomness on-chain to an immutable contract. The whole request → fulfill flow is logged and auditable on BaseScan.",
+    title: "Pyth Entropy",
+    body: "Pyth delivers that randomness on-chain to an immutable contract. The whole request → fulfill flow is logged and auditable on BaseScan.",
     icon: "🔗",
   },
   {
     title: "Re-run it yourself",
-    body: "Every draw emits a RoundSettled event with the exact seed. The Fisher-Yates shuffle is deterministic — replay it with any script and confirm the winners.",
+    body: "Every draw emits a DrawReady event with the exact seed. Each winning digit is keccak256-derived from it — replay it with any script and confirm the winners.",
     icon: "🔍",
   },
 ];
 
 const TRUST = [
-  "GELATO VRF",
-  "DRAND BEACON",
+  "PYTH ENTROPY",
+  "VERIFIABLE RANDOMNESS",
   "BASE L2",
   "USDC SETTLEMENT",
   "OPEN SOURCE",

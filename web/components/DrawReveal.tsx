@@ -140,7 +140,7 @@ export function DrawReveal({ className = "" }: { className?: string }) {
                       Drawing{dots}
                     </div>
                     <div className="text-indigo-300/50 text-sm">
-                      Pulling a public random beacon via Gelato VRF + Drand
+                      Requesting verifiable randomness via Pyth Entropy
                     </div>
                     <div className="flex items-center justify-center gap-1.5">
                       {[0, 1, 2, 3, 4].map((i) => (
@@ -201,7 +201,7 @@ export function DrawReveal({ className = "" }: { className?: string }) {
                       animate={{ opacity: phase === "done" ? 1 : 0.4 }}
                       className="text-xs text-indigo-300/50"
                     >
-                      Provably drawn via Gelato VRF + Drand — verifiable on-chain.
+                      Provably drawn via Pyth Entropy — verifiable on-chain.
                     </motion.p>
                   </motion.div>
                 )}

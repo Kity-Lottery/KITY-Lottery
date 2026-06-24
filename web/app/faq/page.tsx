@@ -16,7 +16,7 @@ const SECTIONS: { title: string; icon: string; items: FaqItem[] }[] = [
     items: [
       {
         q: "What is KITY?",
-        a: "KITY is a provably fair, on-chain lottery on Base. Every round fires a verifiable random draw via Gelato VRF at 00:00 UTC. Prize amounts credit on-chain instantly — winners withdraw to their wallet with one click, any time, no expiry.",
+        a: "KITY is a provably fair, on-chain lottery on Base. Every round fires a verifiable random draw via Pyth Entropy. Winners claim their ticket and withdraw to their wallet — any time, no expiry.",
       },
       {
         q: "How do I enter?",
@@ -39,7 +39,7 @@ const SECTIONS: { title: string; icon: string; items: FaqItem[] }[] = [
       },
       {
         q: "When does the draw happen?",
-        a: "Every round runs on a 24-hour timer and fires at the top of the cycle (00:00 UTC). There's no minimum head-count — the draw runs even if a single ticket is in the pot. The live countdown on the Play page shows exactly how long is left.",
+        a: "Every round runs on a 24-hour timer — or sooner if it fills to 1,000 tickets. There's no minimum head-count: the draw runs even if a single ticket is in the pot. The live countdown on the Play page shows exactly how long is left.",
       },
       {
         q: "What if hardly anyone enters a round?",
@@ -53,22 +53,22 @@ const SECTIONS: { title: string; icon: string; items: FaqItem[] }[] = [
     items: [
       {
         q: "Can KITY rig the draw?",
-        a: "No. Once the contract is deployed, its logic is immutable — nobody, including the team, can change how winners are selected. The random seed comes from Drand, a public randomness beacon operated by MIT, Cloudflare, Protocol Labs, and others. KITY never touches the randomness.",
+        a: "No. Once the contract is deployed, its logic is immutable — nobody, including the team, can change how winners are selected. The random seed comes from Pyth Entropy, a verifiable on-chain randomness service. KITY never touches the randomness.",
       },
       {
-        q: "What is Gelato VRF?",
-        a: "Gelato VRF is a free, verifiable randomness service. When a draw triggers, KITY emits a randomness request that Gelato picks up. Gelato fetches a round from Drand — a distributed, publicly verifiable randomness beacon — and delivers it back to the smart contract. The whole flow is auditable on-chain.",
+        q: "What is Pyth Entropy?",
+        a: "Pyth Entropy is a verifiable on-chain randomness service. When a draw triggers, KITY requests a random number; the Pyth provider — committed to a secret in advance, so it can't bias the result — delivers it back to the smart contract. The whole flow is auditable on-chain.",
       },
       {
         q: "How do I verify a past draw myself?",
         a: (
           <>
-            Every draw emits a <code className="text-violet-300 bg-white/5 px-1 rounded text-xs">RoundSettled</code> event
+            Every draw emits a <code className="text-violet-300 bg-white/5 px-1 rounded text-xs">DrawReady</code> event
             on-chain with the random value used. You can look up any round on{" "}
             <span className="text-violet-400">BaseScan</span>, find the
-            <code className="text-violet-300 bg-white/5 px-1 rounded text-xs ml-1">fulfillRandomness</code> transaction,
-            and trace the randomness back to the Drand round. The Fisher-Yates shuffle that selects winners is deterministic
-            given that seed — re-run it yourself with any script to confirm.
+            <code className="text-violet-300 bg-white/5 px-1 rounded text-xs ml-1">entropyCallback</code> transaction,
+            and trace the randomness back to the Pyth request. Each winning digit is derived from that seed with
+            keccak256 — re-compute it yourself with any script to confirm.
           </>
         ),
       },

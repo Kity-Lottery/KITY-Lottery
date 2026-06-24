@@ -3,8 +3,8 @@ const { ethers, network } = require("hardhat");
 
 const BASE_USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 
-// Pyth Entropy contract per network. Unlike the old Gelato operator, this IS a
-// fixed, public chain constant (a single shared contract), so it is safe to
+// Pyth Entropy contract per network. This IS a fixed, public chain constant
+// (a single shared contract), so it is safe to
 // hardcode. Base mainnet value verified on-chain + against Pyth's official
 // registry (docs.pyth.network/entropy/contract-addresses).
 const ENTROPY = {

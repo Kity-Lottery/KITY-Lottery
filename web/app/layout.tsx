@@ -9,7 +9,7 @@ import { MobileMenu } from "@/components/MobileMenu";
 export const metadata: Metadata = {
   title: "KITY — The fairest lottery on-chain",
   description:
-    "Pick-4 lottery on Base. A Gelato VRF draw fires every 24 hours — even with a single ticket in the pot. Pick digits 0–9 plus a KITY letter — K, I, T or Y; jackpot odds a flat 1 in 40,000. No winner? It rolls into the next draw. $2 a ticket, zero house edge on the randomness.",
+    "Pick-4 lottery on Base. A Pyth Entropy draw fires every 24 hours — even with a single ticket in the pot. Pick digits 0–9 plus a KITY letter — K, I, T or Y; jackpot odds a flat 1 in 40,000. No winner? It rolls into the next draw. $2 a ticket, zero house edge on the randomness.",
 };
 
 export const viewport: Viewport = {
@@ -70,7 +70,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <main className="flex-1 pb-16 pt-6">{children}</main>
 
             <footer className="border-t border-white/5 py-8 text-center text-xs text-indigo-300/30 space-y-1 lg:mx-auto lg:max-w-2xl">
-              <div>Powered by Gelato VRF · Built on Base · Open source</div>
+              <div>Powered by Pyth Entropy · Built on Base · Open source</div>
               <div className="text-indigo-300/20">
                 A verifiable on-chain draw fires every 24 hours — even with one ticket in
               </div>

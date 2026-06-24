@@ -102,7 +102,7 @@ The deploy script prints these with addresses filled in:
 3. **Run the keeper** — set `KEEPER_PRIVATE_KEY` (a funded keeper EOA, gas-only — **not** the owner key) as a GitHub Actions secret. The included workflow calls `triggerDraw()`/`settle()` every 10 minutes. No third-party automation service required.
 4. **Confirm Safe ownership** — `await lottery.owner()` → your Safe (set at construction, no transfer step).
 
-> **No randomness service to register.** Unlike LINK/VRF or Gelato, Pyth Entropy needs no dashboard, account, or task — the contract calls `requestV2()` and Pyth's keeper auto-fulfills.
+> **No randomness service to register.** Pyth Entropy needs no dashboard, account, or task — the contract calls `requestV2()` and Pyth's keeper auto-fulfills.
 
 ---
 
