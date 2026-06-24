@@ -17,30 +17,6 @@ const CHANNELS = [
     badgeColor: "bg-slate-500/20 text-slate-300",
   },
   {
-    name: "Discord",
-    handle: "kity.lottery",
-    icon: "💬",
-    desc: "Real-time chat, draw announcements, winner shout-outs, and weekly odds breakdowns.",
-    cta: "Join Discord",
-    href: "#",
-    color: "from-indigo-500/20 to-violet-500/10",
-    border: "border-indigo-500/25",
-    badge: "Most active",
-    badgeColor: "bg-indigo-500/20 text-indigo-300",
-  },
-  {
-    name: "Instagram",
-    handle: "@kity.lottery",
-    icon: "📸",
-    desc: "Winner highlights, jackpot countdowns, and behind-the-scenes from the team.",
-    cta: "Follow on Instagram",
-    href: "https://instagram.com/kity.lottery",
-    color: "from-pink-500/20 to-rose-500/10",
-    border: "border-pink-500/25",
-    badge: null,
-    badgeColor: "",
-  },
-  {
     name: "Email",
     handle: "kity.lottery@proton.me",
     icon: "✉️",
@@ -190,6 +166,25 @@ export default function CommunityPage() {
         </div>
       </div>
 
+      {/* Source / verification */}
+      <div className="card-glass space-y-3">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-indigo-300/50">
+          Source & Verification
+        </h2>
+        <p className="text-xs text-indigo-300/60 leading-relaxed">
+          The contracts, tests, and frontend live in the public repo. Use it to verify the smart contract code,
+          inspect the test suite, and review the app implementation before you play.
+        </p>
+        <a
+          href="https://github.com/Kity-Lottery/KITY-Lottery"
+          target="_blank"
+          rel="noreferrer noopener"
+          className="inline-flex items-center gap-1 text-xs font-bold text-violet-300 hover:text-violet-200 transition-colors"
+        >
+          View the GitHub repo <span aria-hidden>↗</span>
+        </a>
+      </div>
+
       {/* Community values */}
       <div className="space-y-5">
         <h2 className="text-xs font-bold uppercase tracking-widest text-indigo-300/50">
@@ -242,7 +237,7 @@ export default function CommunityPage() {
           and a revenue share on referral volume.
         </p>
         <p className="text-xs text-amber-300/50">
-          Interested? Reach out at <span className="text-amber-300/70 font-mono">kity.lottery@proton.me</span> or introduce yourself in Discord.
+          Interested? Reach out at <span className="text-amber-300/70 font-mono">kity.lottery@proton.me</span> or review the public repo.
         </p>
       </Card>
 
@@ -251,7 +246,7 @@ export default function CommunityPage() {
         <h3 className="text-lg font-black text-white">Start here.</h3>
         <p className="text-sm text-indigo-300/60 max-w-sm mx-auto">
           Follow <span className="text-violet-300 font-mono">@kity.lottery</span> on X for draw results,
-          join Discord for real-time chat, or email us at{" "}
+          review the source repo for verification, or email us at{" "}
           <a href="mailto:kity.lottery@proton.me" className="text-violet-300 hover:text-violet-200 transition-colors">
             kity.lottery@proton.me
           </a>.
@@ -265,18 +260,20 @@ export default function CommunityPage() {
           >
             𝕏 Follow @kity.lottery →
           </a>
-          <a
-            href="#"
-            className="px-6 py-3 rounded-2xl text-sm font-semibold border border-white/10 text-indigo-300 hover:border-white/20 transition-colors"
-          >
-            💬 Join Discord →
-          </a>
           <Link
             href="/about"
             className="px-6 py-3 rounded-2xl text-sm font-semibold border border-white/10 text-indigo-300 hover:border-white/20 transition-colors"
           >
             How KITY works
           </Link>
+          <a
+            href="https://github.com/Kity-Lottery/KITY-Lottery"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="px-6 py-3 rounded-2xl text-sm font-semibold border border-white/10 text-indigo-300 hover:border-white/20 transition-colors"
+          >
+            Source repo
+          </a>
         </div>
       </div>
 
