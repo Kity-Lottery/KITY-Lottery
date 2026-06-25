@@ -268,6 +268,7 @@ export default function LotteryPage() {
             <RoundTimer
               variant="compact"
               endTime={roundData?.endTime}
+              ticketCount={ticketCount}
               className="text-xl font-black whitespace-nowrap"
             />
             <div className="text-[9px] text-indigo-300/28 leading-none">

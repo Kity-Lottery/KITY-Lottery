@@ -17,10 +17,12 @@ function pad(n: number): string {
 
 export function RoundTimer({
   endTime,
+  ticketCount,
   variant = "hero",
   className = "",
 }: {
   endTime?: bigint; // unix seconds; the countdown target
+  ticketCount?: bigint; // tickets in the round — a draw can only fire with >= 1
   variant?: "hero" | "compact";
   className?: string;
 }) {
@@ -38,6 +40,10 @@ export function RoundTimer({
   const ms = now !== null && targetMs !== null ? Math.max(0, targetMs - now) : null;
   const ready = ms !== null;
   const due = ms !== null && ms <= 0;
+  // A real draw is imminent only when an elapsed round actually has tickets. An
+  // empty round past its timer is just waiting for the first buyer (the keeper
+  // rolls its timer forward), so it must not claim to be "Drawing".
+  const drawing = due && (ticketCount ?? 0n) > 0n;
 
   const safe = ms ?? 0;
   const h = Math.floor(safe / 3_600_000);
@@ -54,11 +60,17 @@ export function RoundTimer({
         <motion.span
           animate={{ opacity: [1, 0.4, 1] }}
           transition={{ duration: 1.4, repeat: Infinity }}
-          className={due ? "text-emerald-400" : "text-amber-400"}
+          className={drawing ? "text-emerald-400" : "text-amber-400"}
         >
           ●
         </motion.span>
-        {!ready ? "--:--:--" : due ? "Drawing…" : `${pad(h)}:${pad(m)}:${pad(s)}`}
+        {!ready
+          ? "--:--:--"
+          : drawing
+          ? "Drawing…"
+          : due
+          ? "Awaiting tickets"
+          : `${pad(h)}:${pad(m)}:${pad(s)}`}
         {ready && !due && <span className="text-indigo-300/40">to draw</span>}
       </span>
     );

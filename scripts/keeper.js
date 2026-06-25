@@ -24,6 +24,7 @@ const ABI = [
   "function settle(uint256 maxTickets)",
   "function currentRound() view returns (uint256)",
   "function nextRoundToSettle() view returns (uint256)",
+  "function getRound(uint256) view returns (tuple(uint256 startTicket,uint256 ticketCount,uint256 endTime,uint256 drawRequestedAt,uint8[4] winningMain,uint8 winningKitti,uint256 luckyTicket,uint8 status,uint256 settledAt,uint256 pool,uint256 rolledToNext,uint64 entropySeq,uint256 randomWord,uint256 scanCursor,uint256 jWin,uint256 p2Win,uint256 p3Win,uint256 jpp,uint256 p2pp,uint256 p3pp))",
 ];
 
 async function main() {
@@ -61,6 +62,23 @@ async function main() {
     console.log("  draw requested (Pyth will fulfill shortly)");
   } else {
     console.log("drawDue=false");
+  }
+
+  // 3) Roll an EMPTY round forward when its timer has elapsed. With 0 tickets a
+  //    draw can't fire (drawDue=false), so triggerDraw() simply extends the round
+  //    by ROUND_DURATION — keeping the countdown live and giving the first buyer a
+  //    real window instead of an instant draw.
+  const curr = await c.currentRound();
+  const r = await c.getRound(curr);
+  const nowSec = BigInt(Math.floor(Date.now() / 1000));
+  if (Number(r.status) === 0 && r.ticketCount === 0n && nowSec >= r.endTime) {
+    console.log("empty round past endTime -> triggerDraw() to roll the timer forward");
+    const tx = await c.triggerDraw();
+    console.log(`  ${tx.hash}`);
+    await tx.wait();
+    console.log("  rolled forward ~24h");
+  } else {
+    console.log("rollForward=not needed");
   }
 
   console.log("done");
