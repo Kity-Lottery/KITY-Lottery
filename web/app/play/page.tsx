@@ -7,10 +7,11 @@ import {
   useReadContract,
   useWriteContract,
   useWaitForTransactionReceipt,
+  useSwitchChain,
 } from "wagmi";
 import { lotteryAbi } from "@/lib/lotteryAbi";
 import { erc20Abi } from "@/lib/erc20Abi";
-import { LOTTERY_ADDRESS, TOKEN_ADDRESS, ZERO_ADDRESS } from "@/lib/contracts";
+import { LOTTERY_ADDRESS, TOKEN_ADDRESS, ZERO_ADDRESS, DEFAULT_CHAIN_ID } from "@/lib/contracts";
 import { formatToken } from "@/lib/format";
 import { TicketChecker } from "@/components/TicketChecker";
 import { RoundCard } from "@/components/RoundCard";
@@ -27,6 +28,9 @@ type Tab = "play" | "tickets" | "results";
 // main is POSITIONAL (Ball 1..4, repeats allowed) — order is significant, never sort.
 type Draft = { main: number[]; kitti: number };
 
+// Configured wagmi chains are 8453 (Base) / 84532 (Base Sepolia); cast to satisfy
+// wagmi's literal-union chainId type.
+const TARGET_CHAIN           = DEFAULT_CHAIN_ID as 8453 | 84532;
 const TICKET_PRICE           = 2_000_000n;
 const MAX_MAIN               = MAIN_RANGE;  // digits 0–9
 const MAX_KITTI              = KITTI_RANGE; // K · I · T · Y
@@ -38,7 +42,8 @@ const SLIP_TRANS = { duration: 0.22, ease: [0.16, 1, 0.3, 1]    as const };
 
 // ── Main page ──────────────────────────────────────────────────────────────────
 export default function LotteryPage() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chainId } = useAccount();
+  const { switchChain } = useSwitchChain();
 
   const [tab, setTab]                       = useState<Tab>("play");
   const [slots, setSlots]                   = useState<(number | null)[]>([null, null, null, null]);
@@ -122,6 +127,8 @@ export default function LotteryPage() {
   const fillPct        = maxTickets > 0 ? Math.min(100, (Number(ticketCount) / maxTickets) * 100) : 0;
   const totalCost      = BigInt(cart.length) * TICKET_PRICE;
   const needsApproval  = isConnected && cart.length > 0 && usdcAllowance !== undefined && usdcAllowance < totalCost;
+  const wrongNetwork   = isConnected && chainId !== undefined && chainId !== DEFAULT_CHAIN_ID;
+  const insufficientUsdc = isConnected && cart.length > 0 && usdcBalance !== undefined && usdcBalance < totalCost;
   const canAddToCart   = slots.every((s) => s !== null) && selectedKitti !== null;
   const settledCount   = currentRoundId !== undefined ? Number(currentRoundId) : 0;
   const viewRoundId    = settledCount > 0 ? BigInt(Math.max(0, settledCount - 1 - viewOffset)) : null;
@@ -175,6 +182,7 @@ export default function LotteryPage() {
 
   const handleApprove = async () => {
     await writeContractAsync({
+      chainId: TARGET_CHAIN,
       address: TOKEN_ADDRESS,
       abi: erc20Abi,
       functionName: "approve",
@@ -186,6 +194,7 @@ export default function LotteryPage() {
   const handleBuy = async () => {
     if (!cart.length) return;
     await writeContractAsync({
+      chainId: TARGET_CHAIN,
       address: LOTTERY_ADDRESS,
       abi: lotteryAbi,
       functionName: "buyTickets",
@@ -567,6 +576,21 @@ export default function LotteryPage() {
                           <p className="text-center text-sm text-indigo-300/40 py-1">
                             Connect wallet to enter
                           </p>
+                        ) : wrongNetwork ? (
+                          <motion.button
+                            type="button"
+                            onClick={() => switchChain({ chainId: TARGET_CHAIN })}
+                            whileHover={{ scale: 1.01 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="btn btn-primary w-full"
+                          >
+                            Switch to Base
+                          </motion.button>
+                        ) : insufficientUsdc ? (
+                          <div className="text-center text-sm text-amber-400/80 py-1">
+                            Need ${formatToken(totalCost)} USDC on Base — your balance is $
+                            {formatToken(usdcBalance ?? 0n)}.
+                          </div>
                         ) : needsApproval ? (
                           <motion.button
                             type="button"
