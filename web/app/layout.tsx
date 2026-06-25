@@ -10,6 +10,10 @@ export const metadata: Metadata = {
   title: "KITY — The fairest lottery on-chain",
   description:
     "Pick-4 lottery on Base. A Pyth Entropy draw fires every 24 hours — even with a single ticket in the pot. Pick digits 0–9 plus a KITY letter — K, I, T or Y; jackpot odds a flat 1 in 40,000. No winner? It rolls into the next draw. $2 a ticket, zero house edge on the randomness.",
+  // Base app association (App Router replacement for the removed app/head.tsx).
+  other: {
+    "base:app_id": "6a3be203cc365e495bb780d1",
+  },
 };
 
 export const viewport: Viewport = {

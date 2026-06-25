@@ -12,7 +12,7 @@ const STEPS = [
     icon: "🔗",
   },
   {
-    desc: "The contract, the tests, the frontend — all open source in the public repo. Fork it, audit it, break it. We welcome scrutiny.",
+    n: "02",
     title: "Pick your numbers",
     body: "Choose a digit 0–9 for each of the four balls — repeats allowed, so 7-7-1-4 is fine — plus a KITY letter, K, I, T or Y. Or hit Quick Pick.",
     icon: "🎯",
@@ -155,7 +155,7 @@ export default function AboutPage() {
           <p className="text-indigo-100 text-sm leading-relaxed">
             KITY replaces trust with cryptographic proof. The random number comes from{" "}
             <span className="text-violet-300 font-semibold">Pyth Entropy</span> — verifiable on-chain randomness
-            run by MIT, Cloudflare, Protocol Labs, and others. The draw is settled by a smart contract
+            that no one, including KITY, can predict or bias. The draw is settled by a smart contract
             that <em>cannot</em> be modified after deployment. Winners receive USDC instantly.
             And the odds aren't hidden — a flat <span className="text-violet-300 font-semibold">1 in 40,000</span>{" "}
             at the jackpot, printed right on the ticket. Everything is auditable on-chain, forever.
