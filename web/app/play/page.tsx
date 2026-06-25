@@ -13,7 +13,7 @@ import { lotteryAbi } from "@/lib/lotteryAbi";
 import { erc20Abi } from "@/lib/erc20Abi";
 import { LOTTERY_ADDRESS, TOKEN_ADDRESS, ZERO_ADDRESS, DEFAULT_CHAIN_ID } from "@/lib/contracts";
 import { formatToken } from "@/lib/format";
-import { TicketChecker } from "@/components/TicketChecker";
+import { MyTickets } from "@/components/MyTickets";
 import { RoundCard } from "@/components/RoundCard";
 import { LotteryBall } from "@/components/LotteryBall";
 import { EstPrizePanel } from "@/components/EstPrizePanel";
@@ -50,8 +50,6 @@ export default function LotteryPage() {
   const [selectedKitti, setSelectedKitti]   = useState<number | null>(null);
   const [activeSlot, setActiveSlot]         = useState<number>(0); // 0–3 = balls, 4 = Kitti
   const [cart, setCart]                     = useState<Draft[]>([]);
-  const [lookupRound, setLookupRound]       = useState("");
-  const [lookupTicket, setLookupTicket]     = useState("");
   const [viewOffset, setViewOffset]         = useState(0);
 
   // ── Contract reads ──────────────────────────────────────────────────────────
@@ -689,65 +687,7 @@ export default function LotteryPage() {
                     )}
                   </div>
 
-                  <div className="lg:grid lg:grid-cols-12 lg:gap-6 lg:items-start space-y-4 lg:space-y-0">
-
-                  {/* LEFT: ticket form */}
-                  <div className="lg:col-span-7 space-y-4 min-w-0">
-
-                  {/* Ticket lookup */}
-                  <div className="card-glass space-y-4">
-                    <div className="font-semibold text-indigo-100">Check a Ticket</div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="label">Round #</label>
-                        <input
-                          type="number" min="0"
-                          value={lookupRound}
-                          onChange={(e) => setLookupRound(e.target.value)}
-                          placeholder="0"
-                          className="input"
-                        />
-                      </div>
-                      <div>
-                        <label className="label">Ticket index</label>
-                        <input
-                          type="number" min="0"
-                          value={lookupTicket}
-                          onChange={(e) => setLookupTicket(e.target.value)}
-                          placeholder="0"
-                          className="input"
-                        />
-                      </div>
-                    </div>
-                    <TicketChecker
-                      roundId={lookupRound !== "" ? BigInt(lookupRound) : undefined}
-                      ticketIdx={lookupTicket !== "" ? BigInt(lookupTicket) : undefined}
-                      userAddress={address}
-                    />
-                  </div>
-
-                  </div>
-
-                  {/* RIGHT: help card sticky rail */}
-                  <div className="lg:col-span-5 lg:sticky lg:top-6 lg:self-start space-y-4 min-w-0">
-                  <div className="card-glass text-xs text-indigo-300/40 space-y-3">
-                    <div className="font-semibold text-indigo-300/70">Finding your ticket index</div>
-                    <div className="space-y-2">
-                      <p>Each ticket has a global index across all rounds. To find yours:</p>
-                      <ol className="list-decimal list-inside space-y-1.5 pl-1">
-                        <li>Open your wallet → tap the buy transaction</li>
-                        <li>View it on Basescan → click <span className="text-indigo-300/65 font-semibold">Logs</span></li>
-                        <li>Find the <span className="text-indigo-300/65 font-semibold">TicketBought</span> event</li>
-                        <li>The <span className="text-indigo-300/65 font-semibold">ticketIdx</span> value is your index</li>
-                      </ol>
-                    </div>
-                    <div className="border-t border-white/5 pt-2">
-                      After a round settles, <span className="text-emerald-400/70 font-semibold">Claim</span> your winning ticket in the checker below (the Lucky Wallet prize is auto-credited), then hit <span className="text-emerald-400/70 font-semibold">Withdraw</span> above.
-                    </div>
-                  </div>
-                  </div>
-
-                  </div>
+                  <MyTickets userAddress={address} />
                 </>
               )}
             </div>
