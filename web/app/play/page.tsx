@@ -13,6 +13,7 @@ import { erc20Abi } from "@/lib/erc20Abi";
 import { LOTTERY_ADDRESS, TOKEN_ADDRESS, ZERO_ADDRESS } from "@/lib/contracts";
 import { formatToken } from "@/lib/format";
 import { TicketChecker } from "@/components/TicketChecker";
+import { RoundCarousel } from "@/components/RoundCarousel";
 import { RoundCard } from "@/components/RoundCard";
 import { LotteryBall } from "@/components/LotteryBall";
 import { EstPrizePanel } from "@/components/EstPrizePanel";
