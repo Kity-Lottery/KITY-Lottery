@@ -106,6 +106,4 @@ export async function GET(req: Request) {
   }
 }
 
-// Allow Vercel cron to call via POST as well (some schedulers prefer POST)
-export const GET_alias = GET;
 export async function POST(req: Request) { return GET(req); }
