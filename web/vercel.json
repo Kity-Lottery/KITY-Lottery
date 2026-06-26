@@ -1,0 +1,13 @@
+{
+  "crons": [
+    {
+      "path": "/api/keeper",
+      "schedule": "* * * * *"
+    }
+  ],
+  "functions": {
+    "app/api/keeper/route.ts": {
+      "maxDuration": 60
+    }
+  }
+}
