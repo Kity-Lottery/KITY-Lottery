@@ -739,27 +739,24 @@ export default function LotteryPage() {
               ) : (
                 <>
                   {/* Round navigation */}
-                  <div className="flex items-center justify-between">
-                    <button
-                      type="button"
-                      onClick={() => setViewOffset((o) => Math.min(o + 1, settledCount - 1))}
-                      disabled={viewOffset >= settledCount - 1}
-                      className="btn btn-ghost px-3 py-2 text-xs disabled:opacity-30"
-                    >
-                      ← Older
-                    </button>
-                    <span className="text-xs text-indigo-300/50 font-medium">
-                      Round {viewRoundId?.toString()} / {settledCount - 1}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setViewOffset((o) => Math.max(o - 1, 0))}
-                      disabled={viewOffset === 0}
-                      className="btn btn-ghost px-3 py-2 text-xs disabled:opacity-30"
-                    >
-                      Newer →
-                    </button>
-                  </div>
+{/* ── RESULTS ─────────────────────────────────────────────────────── */}
+{tab === "results" && (
+  <div className="space-y-5 lg:mx-auto lg:max-w-3xl xl:max-w-5xl">
+    {settledCount === 0 ? (
+      <div className="card-glass py-16 text-center">
+        <div className="text-4xl mb-4 animate-float">🎰</div>
+        <div className="text-indigo-300/50">No rounds settled yet. Be first!</div>
+      </div>
+    ) : (
+      <RoundCarousel
+        settledCount={settledCount}
+        viewRoundId={viewRoundId}
+        setViewOffset={setViewOffset}
+        address={address}
+      />
+    )}
+  </div>
+)}
 
                   <div className="xl:grid xl:grid-cols-2 xl:gap-6 xl:items-start space-y-5 xl:space-y-0">
                     {viewRoundId !== null && (
