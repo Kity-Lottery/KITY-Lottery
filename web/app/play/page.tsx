@@ -7,13 +7,13 @@ import {
   useReadContract,
   useWriteContract,
   useWaitForTransactionReceipt,
+  useSwitchChain,
 } from "wagmi";
 import { lotteryAbi } from "@/lib/lotteryAbi";
 import { erc20Abi } from "@/lib/erc20Abi";
-import { LOTTERY_ADDRESS, TOKEN_ADDRESS, ZERO_ADDRESS } from "@/lib/contracts";
+import { LOTTERY_ADDRESS, TOKEN_ADDRESS, ZERO_ADDRESS, DEFAULT_CHAIN_ID } from "@/lib/contracts";
 import { formatToken } from "@/lib/format";
-import { TicketChecker } from "@/components/TicketChecker";
-import { RoundCarousel } from "@/components/RoundCarousel";
+import { MyTickets } from "@/components/MyTickets";
 import { RoundCard } from "@/components/RoundCard";
 import { LotteryBall } from "@/components/LotteryBall";
 import { EstPrizePanel } from "@/components/EstPrizePanel";
@@ -28,6 +28,9 @@ type Tab = "play" | "tickets" | "results";
 // main is POSITIONAL (Ball 1..4, repeats allowed) — order is significant, never sort.
 type Draft = { main: number[]; kitti: number };
 
+// Configured wagmi chains are 8453 (Base) / 84532 (Base Sepolia); cast to satisfy
+// wagmi's literal-union chainId type.
+const TARGET_CHAIN           = DEFAULT_CHAIN_ID as 8453 | 84532;
 const TICKET_PRICE           = 2_000_000n;
 const MAX_MAIN               = MAIN_RANGE;  // digits 0–9
 const MAX_KITTI              = KITTI_RANGE; // K · I · T · Y
@@ -39,15 +42,14 @@ const SLIP_TRANS = { duration: 0.22, ease: [0.16, 1, 0.3, 1]    as const };
 
 // ── Main page ──────────────────────────────────────────────────────────────────
 export default function LotteryPage() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chainId } = useAccount();
+  const { switchChain } = useSwitchChain();
 
   const [tab, setTab]                       = useState<Tab>("play");
   const [slots, setSlots]                   = useState<(number | null)[]>([null, null, null, null]);
   const [selectedKitti, setSelectedKitti]   = useState<number | null>(null);
   const [activeSlot, setActiveSlot]         = useState<number>(0); // 0–3 = balls, 4 = Kitti
   const [cart, setCart]                     = useState<Draft[]>([]);
-  const [lookupRound, setLookupRound]       = useState("");
-  const [lookupTicket, setLookupTicket]     = useState("");
   const [viewOffset, setViewOffset]         = useState(0);
 
   // ── Contract reads ──────────────────────────────────────────────────────────
@@ -123,6 +125,8 @@ export default function LotteryPage() {
   const fillPct        = maxTickets > 0 ? Math.min(100, (Number(ticketCount) / maxTickets) * 100) : 0;
   const totalCost      = BigInt(cart.length) * TICKET_PRICE;
   const needsApproval  = isConnected && cart.length > 0 && usdcAllowance !== undefined && usdcAllowance < totalCost;
+  const wrongNetwork   = isConnected && chainId !== undefined && chainId !== DEFAULT_CHAIN_ID;
+  const insufficientUsdc = isConnected && cart.length > 0 && usdcBalance !== undefined && usdcBalance < totalCost;
   const canAddToCart   = slots.every((s) => s !== null) && selectedKitti !== null;
   const settledCount   = currentRoundId !== undefined ? Number(currentRoundId) : 0;
   const viewRoundId    = settledCount > 0 ? BigInt(Math.max(0, settledCount - 1 - viewOffset)) : null;
@@ -176,6 +180,7 @@ export default function LotteryPage() {
 
   const handleApprove = async () => {
     await writeContractAsync({
+      chainId: TARGET_CHAIN,
       address: TOKEN_ADDRESS,
       abi: erc20Abi,
       functionName: "approve",
@@ -187,6 +192,7 @@ export default function LotteryPage() {
   const handleBuy = async () => {
     if (!cart.length) return;
     await writeContractAsync({
+      chainId: TARGET_CHAIN,
       address: LOTTERY_ADDRESS,
       abi: lotteryAbi,
       functionName: "buyTickets",
@@ -242,22 +248,22 @@ export default function LotteryPage() {
             </div>
           </div>
 
-          {/* Column 2 — Pool (primary) */}
+          {/* Column 2 — Jackpot (primary) */}
           <div className="flex flex-col justify-center items-center px-3 py-4 gap-px">
             <div className="text-[9px] uppercase tracking-widest text-violet-300/40 font-semibold">
-              Pool
+              Est. Jackpot
             </div>
             <motion.div
-              key={currentPool.toString()}
+              key={estJackpot.toString()}
               initial={{ opacity: 0.6, scale: 0.94 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ type: "spring", stiffness: 280, damping: 22 }}
               className="gradient-text text-2xl sm:text-3xl font-black leading-tight tabular-nums"
             >
-              ${formatToken(currentPool)}
+              ${formatToken(estJackpot)}
             </motion.div>
             <div className="text-[9px] text-indigo-300/28 leading-none">
-              USDC in the round
+              USDC · rolls over
             </div>
           </div>
 
@@ -269,6 +275,7 @@ export default function LotteryPage() {
             <RoundTimer
               variant="compact"
               endTime={roundData?.endTime}
+              ticketCount={ticketCount}
               className="text-xl font-black whitespace-nowrap"
             />
             <div className="text-[9px] text-indigo-300/28 leading-none">
@@ -567,6 +574,21 @@ export default function LotteryPage() {
                           <p className="text-center text-sm text-indigo-300/40 py-1">
                             Connect wallet to enter
                           </p>
+                        ) : wrongNetwork ? (
+                          <motion.button
+                            type="button"
+                            onClick={() => switchChain({ chainId: TARGET_CHAIN })}
+                            whileHover={{ scale: 1.01 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="btn btn-primary w-full"
+                          >
+                            Switch to Base
+                          </motion.button>
+                        ) : insufficientUsdc ? (
+                          <div className="text-center text-sm text-amber-400/80 py-1">
+                            Need ${formatToken(totalCost)} USDC on Base — your balance is $
+                            {formatToken(usdcBalance ?? 0n)}.
+                          </div>
                         ) : needsApproval ? (
                           <motion.button
                             type="button"
@@ -665,65 +687,7 @@ export default function LotteryPage() {
                     )}
                   </div>
 
-                  <div className="lg:grid lg:grid-cols-12 lg:gap-6 lg:items-start space-y-4 lg:space-y-0">
-
-                  {/* LEFT: ticket form */}
-                  <div className="lg:col-span-7 space-y-4 min-w-0">
-
-                  {/* Ticket lookup */}
-                  <div className="card-glass space-y-4">
-                    <div className="font-semibold text-indigo-100">Check a Ticket</div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="label">Round #</label>
-                        <input
-                          type="number" min="0"
-                          value={lookupRound}
-                          onChange={(e) => setLookupRound(e.target.value)}
-                          placeholder="0"
-                          className="input"
-                        />
-                      </div>
-                      <div>
-                        <label className="label">Ticket index</label>
-                        <input
-                          type="number" min="0"
-                          value={lookupTicket}
-                          onChange={(e) => setLookupTicket(e.target.value)}
-                          placeholder="0"
-                          className="input"
-                        />
-                      </div>
-                    </div>
-                    <TicketChecker
-                      roundId={lookupRound !== "" ? BigInt(lookupRound) : undefined}
-                      ticketIdx={lookupTicket !== "" ? BigInt(lookupTicket) : undefined}
-                      userAddress={address}
-                    />
-                  </div>
-
-                  </div>
-
-                  {/* RIGHT: help card sticky rail */}
-                  <div className="lg:col-span-5 lg:sticky lg:top-6 lg:self-start space-y-4 min-w-0">
-                  <div className="card-glass text-xs text-indigo-300/40 space-y-3">
-                    <div className="font-semibold text-indigo-300/70">Finding your ticket index</div>
-                    <div className="space-y-2">
-                      <p>Each ticket has a global index across all rounds. To find yours:</p>
-                      <ol className="list-decimal list-inside space-y-1.5 pl-1">
-                        <li>Open your wallet → tap the buy transaction</li>
-                        <li>View it on Basescan → click <span className="text-indigo-300/65 font-semibold">Logs</span></li>
-                        <li>Find the <span className="text-indigo-300/65 font-semibold">TicketBought</span> event</li>
-                        <li>The <span className="text-indigo-300/65 font-semibold">ticketIdx</span> value is your index</li>
-                      </ol>
-                    </div>
-                    <div className="border-t border-white/5 pt-2">
-                      After a round settles, <span className="text-emerald-400/70 font-semibold">Claim</span> your winning ticket in the checker below (the Lucky Wallet prize is auto-credited), then hit <span className="text-emerald-400/70 font-semibold">Withdraw</span> above.
-                    </div>
-                  </div>
-                  </div>
-
-                  </div>
+                  <MyTickets userAddress={address} />
                 </>
               )}
             </div>
@@ -740,24 +704,27 @@ export default function LotteryPage() {
               ) : (
                 <>
                   {/* Round navigation */}
-{/* ── RESULTS ─────────────────────────────────────────────────────── */}
-{tab === "results" && (
-  <div className="space-y-5 lg:mx-auto lg:max-w-3xl xl:max-w-5xl">
-    {settledCount === 0 ? (
-      <div className="card-glass py-16 text-center">
-        <div className="text-4xl mb-4 animate-float">🎰</div>
-        <div className="text-indigo-300/50">No rounds settled yet. Be first!</div>
-      </div>
-    ) : (
-      <RoundCarousel
-        settledCount={settledCount}
-        viewRoundId={viewRoundId}
-        setViewOffset={setViewOffset}
-        address={address}
-      />
-    )}
-  </div>
-)}
+                  <div className="flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={() => setViewOffset((o) => Math.min(o + 1, settledCount - 1))}
+                      disabled={viewOffset >= settledCount - 1}
+                      className="btn btn-ghost px-3 py-2 text-xs disabled:opacity-30"
+                    >
+                      ← Older
+                    </button>
+                    <span className="text-xs text-indigo-300/50 font-medium">
+                      Round {viewRoundId?.toString()} / {settledCount - 1}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setViewOffset((o) => Math.max(o - 1, 0))}
+                      disabled={viewOffset === 0}
+                      className="btn btn-ghost px-3 py-2 text-xs disabled:opacity-30"
+                    >
+                      Newer →
+                    </button>
+                  </div>
 
                   <div className="xl:grid xl:grid-cols-2 xl:gap-6 xl:items-start space-y-5 xl:space-y-0">
                     {viewRoundId !== null && (
