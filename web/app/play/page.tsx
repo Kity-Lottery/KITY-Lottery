@@ -132,7 +132,6 @@ export default function LotteryPage() {
   const viewRoundId    = settledCount > 0 ? BigInt(Math.max(0, settledCount - 1 - viewOffset)) : null;
   const rolledPool     = nextRoundPoolData ?? 0n;
   const currentPool    = ticketCount * TICKET_PRICE + rolledPool;
-  const estJackpot     = currentPool / 2n; // 50% of pool
 
   // ── Handlers ────────────────────────────────────────────────────────────────
   // Positional pick: set the active ball/Kitti, then auto-advance to the next empty slot.
@@ -248,22 +247,22 @@ export default function LotteryPage() {
             </div>
           </div>
 
-          {/* Column 2 — Jackpot (primary) */}
+          {/* Column 2 — Pool (primary) */}
           <div className="flex flex-col justify-center items-center px-3 py-4 gap-px">
             <div className="text-[9px] uppercase tracking-widest text-violet-300/40 font-semibold">
-              Est. Jackpot
+              Pool
             </div>
             <motion.div
-              key={estJackpot.toString()}
+              key={currentPool.toString()}
               initial={{ opacity: 0.6, scale: 0.94 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ type: "spring", stiffness: 280, damping: 22 }}
               className="gradient-text text-2xl sm:text-3xl font-black leading-tight tabular-nums"
             >
-              ${formatToken(estJackpot)}
+              ${formatToken(currentPool)}
             </motion.div>
             <div className="text-[9px] text-indigo-300/28 leading-none">
-              USDC · rolls over
+              USDC in the round
             </div>
           </div>
 
